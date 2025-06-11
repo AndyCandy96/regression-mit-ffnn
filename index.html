@@ -78,15 +78,14 @@
     <section id="discussion">
         <h2>Diskussion:</h2>
         <p class="blocksatz">
-            Die Datenpunkte liegen dort, wo ich sie erwartet hätte, unverrauscht auf der Ground-Truth-Funktion und verrauscht zufällig verteilt drumherum. 
-            Aufgrund von Lücken zwischend den Datenpunkten kann selbst das Clean Model die Funktion nicht immer genau vorhersagen, was besonders am Anfang bei x = -2 sichtbar wird. 
-            Das Clean-Modell wird mit jeder Trainingsepoche besser, da es aufgrund der sauberen Daten, die alle perfekt auf der Ground-Truth liegen nicht overfitten kann.
-            In einer extra Hilfsklasse, welche ein Diagramm erstellt, visualisierte ich vergleichend den Loss der verrauschten Trainings- und Testdaten, um den Best-Fit-Moment nach einer bestimmten Epochenanzahl und das darauf folgende Overfitting zu erkennen.
+            Die Datenpunkte liegen wie erwartet, unverrauscht exakt der Ground-Truth-Funktion folgend und verrauscht zufällig drumherum verteilt.
+            Aufgrund von Lücken im Verlauf der Daten kann selbst das Clean Model am Anfang des Ausschnitts bei x = -2 den richtigen Wert nicht exakt approximieren.
+            Mit jeder Epoche verbessert sich das Clean Model, ohne overzufitten, da es unverrauscht die Ground Truth erkennen kann, welche als Polynom eine glatte, stetig differenzierbare Funktion ist, die neuronale Netze mit mindestens einem hidden Layer und genügend Neuronen besonders gut lernen können.
+            Das Clean-Modell wird mit jeder Trainingsepoche besser und kann nicht overfitten. Die Ground Truth ist ein Polynom, welche mathematisch glatt (also stetig differenzierbar sind) und glatte Funktionen können neuronale Netzte mit mindestens einem hidden Layer und genügend Neuronen extrem genau approximieren.   
+            Ich visualisierte den Verlauf von Trainings- und Test-Loss in einer Hilfsklasse, um den Best-Fit-Punkt nach einer bestimmten Epochenanzahl und das darauf folgende Overfitting zu erkennen.
             Ich hätte gedacht, dass das Overfitting deutlicher sichtbar wird, doch immerhin stieg wie erwartet der Test-Loss wieder an (auch wenn nur leicht) während der Trainings-Loss weiter sank, was sich kontinuierlich fortsetzte. 
-            Zwischen 380 und 390 Epochen war die größte Anhäufung von Tiefpunkten des Test-Loss sichtbar und daher wählte ich 385 Epochen um das Best-Fit Model zu trainieren.
-            Der Unterschied zwischen dem Best-Fit Model und dem Overfit Model ist klar erkennbar. 
-            Die Prediction-Linien gehen zwar meinst nicht exakt durch Trainings- oder Testdatenpunkte, was aufgrund nah aneinander liegender Test- oder Trainingsdaten (die in beiden hochzontale Richtungen von der Ground-Truth durch das Rauschen abweichen) auch oft nicht möglich ist.
-            Man erkennt den Unterschied eher daran, dass das Overfit Model in seiner Prediction die Testdaten für die Trainingsdaten total vernachlässigt, während das Best Fit Model beide gleich berücksichtigt.
+            Zwischen 380 und 390 Epochen zeigte der Test-Loss die häufigsten Tiefpunkte, daher wählte ich 385 Epochen für das Best-Fit Model.
+            Den Unterschied zwischen dem Best-Fit Model und dem Overfit Model erkennt man besonders daran, dass das Overfit Model in seiner Prediction die Testdaten für die Trainingsdaten total vernachlässigt, während das Best Fit Model beide gleich berücksichtigt.
             Die Kurve des Best-Fit Models ist wesentlich runder und flüssiger als die Kurve, des Overfit Models, welche versucht Trainingsdaten zu erreichen und sich dabei in den Lücken dazwischen immer wieder stärker von der Ground Truth entfernt.
            
 
