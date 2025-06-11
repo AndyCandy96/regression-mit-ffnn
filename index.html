@@ -2,17 +2,149 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Regression mit FFNN</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Regression mit FFNN</h1>
-  <p>Hier entsteht das Regression mit FFNN Projekt.</p>
-  <div id="charts-container"></div>
-  <script src="model_training.js"></script>
-  <script src="script.js"></script>
+    <main>
+    <h1>Deep Learning Einsendeaufgabe 2 - Regression mit FFNN
+        <p id="status"></p>
+    </h1> <h3>Name: Andre Zahn <br/> Hochschule: Ostfalia <br/> Matrikelnummer: 70487656 </h3>
+
+    <script src="data.js"></script>
+    <script src="model_training.js"></script>
+    <script src="model_loss_evaluator.js"></script>
+
+    <div style="background-color: #ffe6e6; border: 1px solid #cc0000; color: #990000; padding: 12px; margin-bottom: 20px; font-family: sans-serif;">
+        <p class="blocksatz"><strong>Hinweis:</strong> Leider habe ich es trotz tage- und nächtelangen Versuchen (und sehr viel Frust) nicht geschafft, die Modelle lokal zu speichern. Die .bin Dateien mit den Gewichten wurden immer wieder beim Download oder Kopieren beschädigt.
+        Deshalb musste ich jetzt die Version abgeben, wo die Modelle beim ersten Öffnen der Website trainiert werden müssen. Sie müssen also einmalig etwas warten, bis die Modelle trainiert sind, was bei 2500 Epochen für das Overfit Model erfahrungsgemäß etwa 5 bis 10 Minuten dauert. 
+        Danach sind sie aber im Local Storage und werden direkt geladen. Trotzdem funktionieren sie gut und das Problem des Overfittings sollte auch mit den neu trainierten Modellen gut erkennbar sein.
+        Die Datenpunkte konnte ich im Code fixieren.</p>
+    </div>
+      
+
+    <h2>R1: Datensätze</h2>
+        <div style="display: flex; gap: 20px;">
+        <div>
+        <h3>Ohne Rauschen</h3>
+        <canvas id="dataPlotClean" width="400" height="300"></canvas>
+        </div>
+        <div>
+        <h3>Mit Rauschen</h3>
+        <canvas id="dataPlotNoisy" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <h2>R2: Vorhersage des "Clean Model" - Trainiert mit 500 Epochen</h2>
+        <div style="display: flex; gap: 20px;">
+        <div>
+        <h3>Vergleich mit unverrauschten Trainingsdaten</h3>
+        <canvas id="canvasCleanTrain" width="400" height="300"></canvas>
+        </div>
+        <div>
+        <h3>Vergleich mit unverrauschten Testdaten</h3>
+        <canvas id="canvasCleanTest" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <h2>R3: Vorhersage des "Best-Fit Model" - Trainiert mit 385 Epochen</h2>
+        <div style="display: flex; gap: 20px;">
+        <div>
+        <h3>Vergleich mit verrauschten Trainingsdaten</h3>
+        <canvas id="canvasBestFitTrain" width="400" height="300"></canvas>
+        </div>
+        <div>
+        <h3>Vergleich mit verrauschten Testdaten</h3>
+        <canvas id="canvasBestFitTest" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <h2>R4: Vorhersage des "Overfit Model" - Trainiert mit 2500 Epochen</h2>
+        <div style="display: flex; gap: 20px;">
+        <div>
+        <h3>Vergleich mit verrauschten Trainingsdaten</h3>
+        <canvas id="canvasOverfitTrain" width="400" height="300"></canvas>
+        </div>
+        <div>
+        <h3>Vergleich mit verrauschten Testdaten</h3>
+        <canvas id="canvasOverfitTest" width="400" height="300"></canvas>
+        </div>
+    </div>
+      
+        
+    </div>
+
+    <section id="discussion">
+        <h2>Diskussion:</h2>
+        <p class="blocksatz">
+            Die Datenpunkte liegen dort, wo ich sie erwartet hätte, unverrauscht auf der Ground-Truth-Funktion und verrauscht zufällig verteilt drumherum. 
+            Aufgrund von Lücken zwischend den Datenpunkten kann selbst das Clean Model die Funktion besonders am Anfang (x = -2), wo besonders wenig Punkte sind, nicht vorhersagen und beginnt marginal unter Null, obwohl f(-2) = -1,36808 (die y-Koordinate am Anfang) sein sollte. 
+            Das Clean-Modell wird mit jeder Trainingsepoche besser, da es aufgrund der sauberen Daten, die alle perfekt auf der Ground-Truth liegen nicht overfitten kann.
+            In einer extra Hilfsklasse, welche ein Diagramm erstellt, visualisierte ich vergleichend den Loss der verrauschten Trainings- und Testdaten, um den Best-Fit-Moment nach einer bestimmten Epochenanzahl und das darauf folgende Overfitting zu erkennen.
+            Ich hätte gedacht, dass das Overfitting deutlicher sichtbar wird doch wie erwartet stieg der Test-Loss wieder an (auch wenn nur leicht) während der Trainings-Loss weiter sank, was sich kontinuierlich fortsetzte. 
+            Zwischen 380 und 390 Epochen erkannte ich die größte Anhäufung von Tiefpunkten des Test-Loss und wählte daher 385 Epochen um das Best-Fit Model zu trainieren.
+            Der Unterschied zwischen dem Best-Fit Model und dem Overfit Model ist klar erkennbar. 
+            Die Prediction-Linien gehen zwar meinst nicht exakt durch die erwarteten Punkte, aber das können sie auch gar nicht aufgrund nah aneinander liegender Test- oder Trainingsdaten, die in beiden hochzontale Richtungen von der Ground-Truth durch das Rauschen abweichen.
+            Man erkennt den Unterschied besonders daran, dass das Overfit Model in seiner Prediction die Testdaten für die Trainingsdaten total vernachlässigt, während das Best Fit Model beide gleich berücksichtigt.
+            Die Kurve des Best-Fit Models ist wesentlich runder und flüssiger als die Kurve, des Overfit Models, welche immer versucht alle Trainingsdaten zu erreichen und dabei die Ground Truth stärker verlässt.
+           
+
+        </p>
+    </section>
+
+    <section id="documentation">
+        <h2>Dokumentation:</h2>
+        <h3>Technisch:</h3>
+        <p>Die wichtigsten Dateien bzw. Klassen in diesem TensorFlow-JavaScript-Projekt sind:
+        <ul>
+            <li><p class="blocksatz"><b>data.js :</b> Hier werden in JavaScript die generierten Datenpunkte, aufgelistet und für das Modelltraining vorbereitet.</p></li>
+            <li><p class="blocksatz"><b>model_training.js :</b> Hier werden in JavaScript die Modelle trainiert oder geladen, falls es das entsprechende Modell bereits gibt. Sie können auch gelöscht und neu trainiert werden. Außerdem werden hier von den Modellen die Predictions berechnet und gemeinsam mit entsprechenden unverrauschten bzw. verrauschten Trainings- bzw. Testdaten visualisiert.</p></li>
+            <li><b>style.css :</b> - für das Styling in CSS</li><br>
+            <li><b>index.html :</b> - für die Struktur der Weboberfläche</li> 
+        </ul>
+        <p>Dateien, die für das Training und Testen benutzt wurden:
+            <ul>
+                <li><p class="blocksatz"><b>data_original.js :</b> Hier wurden in JavaScript die Datenpunkte auf der Ground Truth Funktion generiert und im Local-Storage gespeichert.</p></li>
+                <li><p class="blocksatz"><b>model_training_original.js :</b> Hier wurden in JavaScript die Modelle definiert und trainiert.</p></li>
+                <li><p class="blocksatz"><b>model_loss_evaluator.js :</b> Hier habe ich mir die Trainings- und Test-Loss Verläufe entlang der Epochen anzeigen lassen, um die Epochen Anzahl für das Best Fit Model zu ermintteln. </p></li><br>
+            </ul>
+        Folgende externe Frameworks wurden eingebunden:
+        <ul>
+            <li><b>TensorFlow</b> Neuronale Netze trainieren und Vorhersagen berechnen</li>
+            <li><b>Chart.js</b> Visualisierung der Klassifikationsergebnisse</li>
+        </ul>
+        </p>
+
+        <h3>Fachlich:</h3>
+        <p>Entwicklungsschritte:
+            <ul>
+            <li>Entwicklung der Projekt-Grundstruktur (Ordner und Dateien)</li>
+            <li>Hosting auf GitHub-Pages</li> 
+            <li>Generierung der Datenpunkte</li>
+            <li>Training der Modelle und Ausprobieren verschiedener Parameter: Anzahl der Epochen, Anzahl der Layer, Anzahl der Units, Verschiedene Datenpunkte</li>
+            <li>Kompletter Umbau des Projekts, da ich mit dem Speichern im Local-Storage besonders Schwierigkeiten hatte</li>
+            <li>Zusammenbau und Fertigstellung des Projekts</li>
+            <li>Diskussion und Dokumentation</li>
+            <li>Viele Versuche die Modelle zu speichern, welche alle an kleinen Details scheiterten</li>
+            </ul>
+
+            Hilfsmittel und Quellen:
+            <ul>
+            <li>https://codelabs.developers.google.com/codelabs/tfjs-training-regression</li>
+            <li>https://stackoverflow.com</li>
+            <li>https://chatgpt.com</li>
+            <li>https://www.tensorflow.org/js/</li>
+            <li>https://fmennen.de/post/java-script-schreiben-von-daten-in-eine-datei</li>
+            <li>https://www.w3schools.com/Js/js_async.asp</li>
+            <li>https://medium.com/@chhavikhandelwal/ensuring-smooth-execution-how-to-wait-for-objects-on-window-load-in-javascript-a39fbd1d2e73</li>
+            </ul>
+        </p>
+        </section>
+  
+    </main>
 </body>
 </html>
 
