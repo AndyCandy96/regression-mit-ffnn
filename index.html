@@ -16,7 +16,6 @@
 
     <script src="data.js"></script>
     <script src="model_training.js"></script>
-    <script src="model_loss_evaluator.js"></script>
 
     <div style="background-color: #ffe6e6; border: 1px solid #cc0000; color: #990000; padding: 12px; margin-bottom: 20px; font-family: sans-serif;">
         <p class="blocksatz"><strong>Hinweis:</strong> Leider habe ich es trotz tage- und nächtelangen Versuchen (und sehr viel Frust) nicht geschafft, die Modelle lokal zu speichern. Die .bin Dateien mit den Gewichten wurden immer wieder beim Download oder Kopieren beschädigt.
@@ -109,12 +108,12 @@
             <ul>
                 <li><p class="blocksatz"><b>data_original.js :</b> Hier wurden in JavaScript die Datenpunkte auf der Ground Truth Funktion generiert und im Local-Storage gespeichert.</p></li>
                 <li><p class="blocksatz"><b>model_training_original.js :</b> Hier wurden in JavaScript die Modelle definiert und trainiert.</p></li>
-                <li><p class="blocksatz"><b>model_loss_evaluator.js :</b> Hier habe ich mir die Trainings- und Test-Loss Verläufe entlang der Epochen anzeigen lassen, um die Epochen Anzahl für das Best Fit Model zu ermintteln. </p></li><br>
+                <li><p class="blocksatz"><b>model_loss_evaluator.js :</b> Hier habe ich mir die Trainings- und Test-Loss Verläufe entlang der Epochen anzeigen lassen, um die Epochen Anzahl für das Best Fit Model zu ermintteln. </p></li>
             </ul>
         Folgende externe Frameworks wurden eingebunden:
         <ul>
-            <li><b>TensorFlow</b> Neuronale Netze trainieren und Vorhersagen berechnen</li>
-            <li><b>Chart.js</b> Visualisierung der Klassifikationsergebnisse</li>
+            <li><b>TensorFlow</b> wird verwendet, um neuronale Netze direkt im Browser zu definieren, zu trainieren und für Vorhersagen zu nutzen bzw. diese zu berechnen.</li><br>
+            <li><b>Chart.js</b> Visualisierung der Klassifikationsergebnisse: Es erzeugt anschauliche Diagramme wie Scatterplots, um Trainingsdaten, Testdaten und Modellvorhersagen visuell darzustellen.</li>
         </ul>
         </p>
 
