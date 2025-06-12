@@ -11,7 +11,7 @@ function linspace(start, end, num) {
   return Array.from({ length: num }, (_, i) => start + i * step);
 }
 
-function drawComparisonPlot(canvasId, xData, yData, xLine, yLine, label, mse, mseElementId) {
+function drawComparisonPlot(canvasId, xData, yData, xLine, yLine, label) {
   const ctx = document.getElementById(canvasId).getContext('2d');
   new Chart(ctx, {
     type: 'scatter',
@@ -40,12 +40,6 @@ function drawComparisonPlot(canvasId, xData, yData, xLine, yLine, label, mse, ms
       },
     },
   });
-
-  // Schreibe MSE unter das Diagramm
-  const mseElement = document.getElementById(mseElementId);
-  if (mseElement) {
-    mseElement.innerText = `MSE (${label}): ${mse.toFixed(4)}`;
-  }
 }
 
 async function predictModelLine(model, xMin = -2, xMax = 2, numPoints = 200) {
@@ -55,6 +49,23 @@ async function predictModelLine(model, xMin = -2, xMax = 2, numPoints = 200) {
   const yPred = await yPredTensor.data();
   tf.dispose([xTensor, yPredTensor]);
   return { xValues, yPred };
+}
+
+async function evaluateModel(model, x, y) {
+  model.compile({ optimizer: tf.train.adam(0.01), loss: 'meanSquaredError' }); // notwendig für evaluate()
+  const xTensor = tf.tensor2d(x, [x.length, 1]);
+  const yTensor = tf.tensor2d(y, [y.length, 1]);
+  const evalResult = await model.evaluate(xTensor, yTensor);
+  const mse = (await evalResult.data())[0];
+  tf.dispose([xTensor, yTensor]);
+  return mse.toFixed(5);
+}
+
+function showMSE(id, mse) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.textContent = `MSE: ${mse}`;
+  }
 }
 
 // === Modell-Architekturen ===
@@ -106,27 +117,18 @@ async function trainAndSaveModel(name, model, xTrain, yTrain, xTest, yTest, epoc
   tf.dispose([xTrainTensor, yTrainTensor, xTestTensor, yTestTensor]);
 }
 
-// === Auswertung und Plot eines gespeicherten Modells ===
-async function loadAndPlotModel(name, xTrain, yTrain, xTest, yTest, canvasTrain, canvasTest, mseTrainId, mseTestId) {
+// === Modell laden und Plotten + MSE anzeigen ===
+async function loadAndPlotModel(name, xTrain, yTrain, xTest, yTest, canvasTrain, canvasTest, mseIdTrain, mseIdTest) {
   const model = await tf.loadLayersModel(`indexeddb://${name}`);
-  model.compile({ optimizer: tf.train.adam(0.01), loss: 'meanSquaredError' }); // Kompilieren nach Laden
-
   const { xValues, yPred } = await predictModelLine(model);
+  drawComparisonPlot(canvasTrain, xTrain, yTrain, xValues, yPred, `Trainingsdaten`);
+  drawComparisonPlot(canvasTest, xTest, yTest, xValues, yPred, `Testdaten`);
 
-  // Train-MSE berechnen
-  const xTrainTensor = tf.tensor2d(xTrain, [xTrain.length, 1]);
-  const yTrainTensor = tf.tensor2d(yTrain, [yTrain.length, 1]);
-  const trainMSE = (await model.evaluate(xTrainTensor, yTrainTensor)).dataSync()[0];
-  tf.dispose([xTrainTensor, yTrainTensor]);
+  const mseTrain = await evaluateModel(model, xTrain, yTrain);
+  const mseTest = await evaluateModel(model, xTest, yTest);
 
-  // Test-MSE berechnen
-  const xTestTensor = tf.tensor2d(xTest, [xTest.length, 1]);
-  const yTestTensor = tf.tensor2d(yTest, [yTest.length, 1]);
-  const testMSE = (await model.evaluate(xTestTensor, yTestTensor)).dataSync()[0];
-  tf.dispose([xTestTensor, yTestTensor]);
-
-  drawComparisonPlot(canvasTrain, xTrain, yTrain, xValues, yPred, `Trainingsdaten`, trainMSE, mseTrainId);
-  drawComparisonPlot(canvasTest, xTest, yTest, xValues, yPred, `Testdaten`, testMSE, mseTestId);
+  showMSE(mseIdTrain, mseTrain);
+  showMSE(mseIdTest, mseTest);
 }
 
 // === Hauptfunktion ===
@@ -160,29 +162,9 @@ async function main() {
       await trainAndSaveModel('overfit-model', model, xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 2500);
     }
 
-    await loadAndPlotModel(
-      'clean-model',
-      xTrainClean, yTrainClean,
-      xTestClean, yTestClean,
-      'canvasCleanTrain', 'canvasCleanTest',
-      'mseCleanTrain', 'mseCleanTest'
-    );
-
-    await loadAndPlotModel(
-      'bestfit-model',
-      xTrainNoisy, yTrainNoisy,
-      xTestNoisy, yTestNoisy,
-      'canvasBestFitTrain', 'canvasBestFitTest',
-      'mseBestFitTrain', 'mseBestFitTest'
-    );
-
-    await loadAndPlotModel(
-      'overfit-model',
-      xTrainNoisy, yTrainNoisy,
-      xTestNoisy, yTestNoisy,
-      'canvasOverfitTrain', 'canvasOverfitTest',
-      'mseOverfitTrain', 'mseOverfitTest'
-    );
+    await loadAndPlotModel('clean-model', xTrainClean, yTrainClean, xTestClean, yTestClean, 'canvasCleanTrain', 'canvasCleanTest', 'mseCleanTrain', 'mseCleanTest');
+    await loadAndPlotModel('bestfit-model', xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 'canvasBestFitTrain', 'canvasBestFitTest', 'mseBestfitTrain', 'mseBestfitTest');
+    await loadAndPlotModel('overfit-model', xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 'canvasOverfitTrain', 'canvasOverfitTest', 'mseOverfitTrain', 'mseOverfitTest');
 
   } catch (error) {
     console.error("Fehler beim Laden oder Zeichnen der Modelle:", error);
