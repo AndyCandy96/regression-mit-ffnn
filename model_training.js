@@ -51,6 +51,15 @@ async function predictModelLine(model, xMin = -2, xMax = 2, numPoints = 200) {
   return { xValues, yPred };
 }
 
+async function evaluateModel(model, x, y) {
+  const xTensor = tf.tensor2d(x, [x.length, 1]);
+  const yTensor = tf.tensor2d(y, [y.length, 1]);
+  const lossTensor = model.evaluate(xTensor, yTensor);
+  const loss = (await lossTensor.data())[0];
+  tf.dispose([xTensor, yTensor, lossTensor]);
+  return loss;
+}
+
 // === Modell-Architekturen ===
 function cleanModel() {
   const model = tf.sequential();
@@ -100,12 +109,28 @@ async function trainAndSaveModel(name, model, xTrain, yTrain, xTest, yTest, epoc
   tf.dispose([xTrainTensor, yTrainTensor, xTestTensor, yTestTensor]);
 }
 
-// === Plot für gespeichertes Modell ===
-async function loadAndPlotModel(name, xTrain, yTrain, xTest, yTest, canvasTrain, canvasTest) {
+// === Plot für gespeichertes Modell + Loss-Anzeige ===
+async function loadAndPlotModel(name, xTrain, yTrain, xTest, yTest, canvasTrain, canvasTest, label) {
   const model = await tf.loadLayersModel(`indexeddb://${name}`);
   const { xValues, yPred } = await predictModelLine(model);
+
   drawComparisonPlot(canvasTrain, xTrain, yTrain, xValues, yPred, `Trainingsdaten`);
   drawComparisonPlot(canvasTest, xTest, yTest, xValues, yPred, `Testdaten`);
+
+  const trainLoss = await evaluateModel(model, xTrain, yTrain);
+  const testLoss = await evaluateModel(model, xTest, yTest);
+
+  const lossDisplay = document.createElement('div');
+  lossDisplay.innerHTML = `
+    <strong>${label}</strong><br>
+    MSE (Trainingsdaten): ${trainLoss.toFixed(5)}<br>
+    MSE (Testdaten): ${testLoss.toFixed(5)}
+  `;
+  lossDisplay.style.marginTop = '10px';
+  lossDisplay.style.fontSize = '14px';
+
+  const canvasElem = document.getElementById(canvasTest);
+  canvasElem.parentNode.appendChild(lossDisplay);
 }
 
 // === Hauptfunktion ===
@@ -139,9 +164,9 @@ async function main() {
       await trainAndSaveModel('overfit-model', model, xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 2500);
     }
 
-    await loadAndPlotModel('clean-model', xTrainClean, yTrainClean, xTestClean, yTestClean, 'canvasCleanTrain', 'canvasCleanTest');
-    await loadAndPlotModel('bestfit-model', xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 'canvasBestFitTrain', 'canvasBestFitTest');
-    await loadAndPlotModel('overfit-model', xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 'canvasOverfitTrain', 'canvasOverfitTest');
+    await loadAndPlotModel('clean-model', xTrainClean, yTrainClean, xTestClean, yTestClean, 'canvasCleanTrain', 'canvasCleanTest', 'Clean Model');
+    await loadAndPlotModel('bestfit-model', xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 'canvasBestFitTrain', 'canvasBestFitTest', 'Best Fit Model');
+    await loadAndPlotModel('overfit-model', xTrainNoisy, yTrainNoisy, xTestNoisy, yTestNoisy, 'canvasOverfitTrain', 'canvasOverfitTest', 'Overfit Model');
 
   } catch (error) {
     console.error("Fehler beim Laden oder Zeichnen der Modelle:", error);
